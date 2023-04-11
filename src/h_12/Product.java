@@ -15,7 +15,6 @@ import javax.persistence.ParameterMode;
 import javax.persistence.Persistence;
 import javax.persistence.StoredProcedureQuery;
 import javax.persistence.Table;
-import org.eclipse.persistence.queries.StoredProcedureCall;
 
 /**
  *
@@ -105,12 +104,10 @@ public class Product implements Serializable {
         // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof Product)) {
             return false;
+        } else {
         }
         Product other = (Product) object;
-        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
-            return false;
-        }
-        return true;
+        return !((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id)));
     }
 
     @Override
@@ -119,6 +116,16 @@ public class Product implements Serializable {
     }
 
     // Saját függvények
+    /**
+     * CREATE
+     *
+     * @param name
+     * @param price
+     * @param category
+     * @param size
+     * @param isPizza
+     * @return
+     */
     public static boolean createProduct(String name, String price, String category, String size, Boolean isPizza) {
 
         // Adatbázis kapcsolat pélfányosítása
@@ -145,20 +152,112 @@ public class Product implements Serializable {
             spq.setParameter("productCategory", category);
             spq.setParameter("sizeOfType", size);
             spq.setParameter("isPizza", isPizza);
-            
+
             // Az OUT paramétert regisztráljuk, de nem adunk értéket
             // spq.setParameter("result", "");
-
             // Eljárás meghívása
             spq.execute();
-
             return true;
+
         } catch (Exception ex) {
-            //ex.printStackTrace();
             System.out.println(ex.getMessage());
             return false;
         } finally {
             // Adatbázis kapcsolat lezárása biztonsági okokból
+            em.clear();
+            em.close();
+            emf.close();
+        }
+    }
+
+    /**
+     * READ
+     *
+     * @return
+     */
+    public static boolean selectWhereOrder() {
+
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("H_12PU");
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("selectWhereOrder");
+
+            spq.execute();
+            return true;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+            emf.close();
+        }
+    }
+
+    /**
+     * UPDATE
+     *
+     * @param id
+     * @param name
+     * @param price
+     * @param category
+     * @return
+     */
+    public static boolean updateProductByID(String name, Integer price, String category, Integer id) {
+
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("H_12PU");
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("updateProductByID");
+
+            spq.registerStoredProcedureParameter("name", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("price", Integer.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("category", String.class, ParameterMode.IN);
+            spq.registerStoredProcedureParameter("id", Integer.class, ParameterMode.IN);
+
+            spq.setParameter("name", name);
+            spq.setParameter("price", price);
+            spq.setParameter("category", category);
+            spq.setParameter("id", id);
+
+            spq.execute();
+            return true;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return false;
+        } finally {
+            em.clear();
+            em.close();
+            emf.close();
+        }
+    }
+
+    /**
+     * DELETE
+     *
+     * @param id
+     * @return
+     */
+    public static boolean deleteProductByID(Integer id) {
+
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("H_12PU");
+        EntityManager em = emf.createEntityManager();
+
+        try {
+
+            StoredProcedureQuery spq = em.createStoredProcedureQuery("deleteProductByID");
+
+            spq.registerStoredProcedureParameter("id", Integer.class, ParameterMode.IN);
+            spq.setParameter("id", id);
+
+            spq.execute();
+            return true;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return false;
+        } finally {
             em.clear();
             em.close();
             emf.close();
